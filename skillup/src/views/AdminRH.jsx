@@ -1,3 +1,4 @@
+// src/views/AdminRH.jsx
 import React, { useEffect, useState } from 'react';
 import {
   createUser,
@@ -121,7 +122,9 @@ const AdminRH = ({ currentUser, isRH }) => {
     setCourseError(null);
 
     try {
-      await createCourse(courseForm);
+      // 🔹 AQUI entra o id do usuário logado
+      await createCourse(courseForm, currentUser?.id);
+
       setCourseMessage('Curso criado com sucesso.');
 
       // recarregar lista de cursos para o formulário de módulo
