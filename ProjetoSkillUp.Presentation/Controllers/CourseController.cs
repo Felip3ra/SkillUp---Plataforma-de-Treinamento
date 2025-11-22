@@ -33,6 +33,18 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
             return Ok(new { Message = "Curso encontrado", Course = course });
         }
+        [HttpGet("GetCurses")]
+        public IActionResult GetCurses()
+        {
+            var course = _repositoryCourse.GetAll();
+
+            if (course == null)
+            {
+                return BadRequest(new { Message = "O curso não foi encontrado..." });
+            }
+
+            return Ok(new { Message = "Cursos encontrado", Course = course });
+        }
         #endregion
 
         #region Create

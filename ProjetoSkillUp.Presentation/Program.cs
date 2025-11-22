@@ -26,8 +26,21 @@ builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
 builder.Services.AddScoped<IEnrollmentsRepository, EnrollmentsRepository>();
 builder.Services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
-var app = builder.Build();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVite", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // porta do Vite dev
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+
+
+var app = builder.Build();
+app.UseCors("AllowVite");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
