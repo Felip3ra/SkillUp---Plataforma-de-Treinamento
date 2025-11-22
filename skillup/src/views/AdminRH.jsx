@@ -1,4 +1,3 @@
-// src/views/AdminRH.jsx
 import React, { useEffect, useState } from 'react';
 import {
   createUser,
@@ -21,7 +20,7 @@ const AdminRH = ({ currentUser, isRH }) => {
   const [userForm, setUserForm] = useState({
     name: '',
     email: '',
-    role: 'Colaborador',
+    role: 1, // 1 = Colaborador, 2 = RH/Admin, 3 = Gestor
     department: '',
   });
   const [userLoading, setUserLoading] = useState(false);
@@ -78,7 +77,10 @@ const AdminRH = ({ currentUser, isRH }) => {
   // ===== HANDLERS USUÁRIO =====
   const handleUserChange = (e) => {
     const { name, value } = e.target;
-    setUserForm((prev) => ({ ...prev, [name]: value }));
+    setUserForm((prev) => ({
+      ...prev,
+      [name]: name === 'role' ? Number(value) : value,
+    }));
   };
 
   const handleUserSubmit = async (e) => {
@@ -88,12 +90,12 @@ const AdminRH = ({ currentUser, isRH }) => {
     setUserError(null);
 
     try {
-      await createUser(userForm);
+      await createUser(userForm); // role já vai numérica (1, 2, 3)
       setUserMessage('Usuário criado com sucesso.');
       setUserForm({
         name: '',
         email: '',
-        role: 'Colaborador',
+        role: 1,
         department: '',
       });
     } catch (err) {
@@ -217,7 +219,7 @@ const AdminRH = ({ currentUser, isRH }) => {
 
             return {
               text: q.text.trim(),
-              options: opts.map((t) => ({ text: t })), // compatível com createQuizWithQuestions
+              options: opts.map((t) => ({ text: t })),
               correctIndex,
             };
           })
@@ -246,9 +248,7 @@ const AdminRH = ({ currentUser, isRH }) => {
         description: '',
       }));
       setQuizPassingScore(70);
-      setQuizQuestions([
-        { text: '', options: ['', '', ''], correctIndex: 0 },
-      ]);
+      setQuizQuestions([{ text: '', options: ['', '', ''], correctIndex: 0 }]);
     } catch (err) {
       setModuleError(err.message || 'Erro ao criar etapa.');
     } finally {
@@ -330,9 +330,9 @@ const AdminRH = ({ currentUser, isRH }) => {
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  <option value="Colaborador">Colaborador</option>
-                  <option value="RH">RH</option>
-                  <option value="Gestor">Gestor</option>
+                  <option value={1}>Colaborador</option>
+                  <option value={2}>RH / Admin</option>
+                  <option value={3}>Gestor</option>
                 </select>
               </div>
 

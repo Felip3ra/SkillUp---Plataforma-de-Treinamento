@@ -2,13 +2,16 @@
 import { MOCK_DATA } from '../mockData';
 
 // ENDEREÇO DA SUA API .NET
-// ajuste para o host/porta que você estiver usando (https://localhost:5001, http://localhost:5000, etc.)
+// ajuste para o host/porta que você estiver usando (https://localhost:7087, http://localhost:5000, etc.)
 const API_BASE_URL = 'https://localhost:7087';
 
 // se quiser simular um pequeno delay visual
 const fakeDelay = (ms = 0) => new Promise((res) => setTimeout(res, ms));
 
-// helpers básicos de chamada HTTP
+// =======================
+// HELPERS HTTP BÁSICOS
+// =======================
+
 async function apiGet(path) {
   const resp = await fetch(`${API_BASE_URL}${path}`, {
     method: 'GET',
@@ -19,7 +22,6 @@ async function apiGet(path) {
     throw new Error(`GET ${path} falhou: ${resp.status} ${text}`);
   }
 
-  // pode não ter body (204)
   try {
     return await resp.json();
   } catch {
@@ -85,34 +87,65 @@ export async function login(email, password) {
     return null;
   }
 
-  // ➜ A API hoje só diz se é válido ou não.
-  // Pegamos os dados do usuário do MOCK_DATA para manter tudo funcionando.
-  let user = MOCK_DATA.users.find((u) => u.email === email);
+  const data = await resp.json().catch(() => null);
+  const backendUser = data?.User || data?.user || data;
 
-  if (!user) {
-    // se não achar, cria um user "genérico"
-    const nameFromEmail = email.split('@')[0] || 'Usuário';
-    user = {
-      id: `local-${email}`,
-      email,
-      name: nameFromEmail,
-      role: 'Colaborador',
-      initials: nameFromEmail
-        .split('.')
-        .map((p) => p[0]?.toUpperCase())
-        .join('') || email[0]?.toUpperCase() || 'U',
-      department: 'N/A',
-    };
+  if (!backendUser) {
+    return null;
   }
+
+  // nome
+  const name =
+    backendUser.name ||
+    backendUser.Nome ||
+    email.split('@')[0] ||
+    'Usuário';
+
+  // email
+  const emailFromApi = backendUser.email || backendUser.Email || email;
+
+  // role numérica (ex.: 1 = Colaborador, 2 = Admin/RH, 3 = Gestor...)
+  const role =
+    backendUser.role ??
+    backendUser.Role ??
+    backendUser.roleId ??
+    backendUser.RoleId ??
+    1;
+
+  // departamento
+  const department =
+    backendUser.department || backendUser.Department || '';
+
+  // iniciais
+  const initials =
+    name
+      .split(' ')
+      .map((p) => p[0]?.toUpperCase())
+      .join('') || emailFromApi[0]?.toUpperCase() || 'U';
+
+  const user = {
+    id:
+      backendUser.id ??
+      backendUser.Id ??
+      backendUser.userId ??
+      backendUser.UserId ??
+      emailFromApi,
+    email: emailFromApi,
+    name,
+    role, // numérico – o front já trata (ex.: role === 2 => Admin/RH)
+    department,
+    initials,
+  };
 
   return user;
 }
 
+// (placeholder) – se um dia tiver endpoint pra isso
 export async function getModuleCompletionsByUser(userId) {
-  const response = await api.get(`/moduleCompletion/user/${userId}`);
-  return response.data;
+  const data = await apiGet(`/moduleCompletion/user/${userId}`).catch(() => null);
+  const list = unwrapList(data);
+  return list;
 }
-
 
 // ainda não temos endpoint de GET Users no backend.
 // mantemos MOCK_DATA pra Dashboard RH continuar funcionando.
@@ -128,17 +161,17 @@ export async function createUser(userForm) {
   // tenta mandar pro backend (ajuste o shape conforme o modelo Users)
   try {
     await apiPost('/User/RegistraUsuario', {
-      // mapeamento mais genérico possível:
       name: userForm.name,
       email: userForm.email,
-      role: userForm.role,
+      // se o modelo de Users tiver estes campos:
+      // password: userForm.password || '123456',
+      // department, role numérica etc – ajuste conforme o domínio
       department: userForm.department,
-      // se seu modelo tiver senha obrigatória, adicione aqui
-      // password: "123456"
+      role: userForm.role,
     });
   } catch (e) {
     console.error('Erro ao registrar usuário no backend:', e);
-    // não dou throw pq quero manter o mock vivo
+    // não dou throw pra não quebrar o front caso a API esteja off
   }
 
   // mantém também no MOCK_DATA para o front continuar enxergando
@@ -172,7 +205,6 @@ export async function getCourses() {
   const data = await apiGet('/Course/GetCourses');
   const list = unwrapList(data);
 
-  // mapeia para o formato esperado pelo front
   return list.map((c) => ({
     id: c.id ?? c.Id ?? c.courseId ?? c.CourseId,
     code: c.code ?? c.Code ?? '',
@@ -199,11 +231,7 @@ export async function getCourses() {
 // GET /Course/GetCourse/{id}
 export async function getCourseById(courseId) {
   const data = await apiGet(`/Course/GetCourse/${courseId}`);
-  const c =
-    data?.Course ||
-    data?.course ||
-    data ||
-    null;
+  const c = data?.Course || data?.course || data || null;
 
   if (!c) return null;
 
@@ -274,17 +302,35 @@ export async function getModules() {
   }));
 }
 
-// GET módulo por id (front usa isso)
+// não temos endpoint específico de módulo por id → carrega todos e filtra
 export async function getModuleById(moduleId) {
-  // não temos endpoint específico, então pegamos todos e filtramos
   const all = await getModules();
   return all.find((m) => String(m.id) === String(moduleId)) || null;
 }
 
 // POST /Module/CreateModule
 export async function createModule(moduleForm) {
-  await apiPost('/Module/CreateModule', moduleForm);
-  return true;
+  const resp = await apiPost('/Module/CreateModule', moduleForm);
+  // se o backend já devolver o módulo criado com Id, usamos; senão, retornamos um objeto simples
+  const m = resp?.Course || resp?.Module || resp?.module || null;
+
+  if (m) {
+    return {
+      id: m.id ?? m.Id ?? m.moduleId ?? m.ModuleId,
+      course_id: m.course_id ?? m.CourseId ?? m.courseId ?? moduleForm.course_id,
+      title: m.title ?? m.Titulo ?? m.Name ?? m.Nome ?? moduleForm.title,
+      type: m.type ?? m.Type ?? moduleForm.type ?? 'VIDEO',
+      order_index: m.order_index ?? m.OrderIndex ?? moduleForm.order_index ?? 1,
+      content_url: m.content_url ?? m.ContentUrl ?? moduleForm.content_url ?? '',
+      description: m.description ?? m.Description ?? moduleForm.description ?? '',
+    };
+  }
+
+  // fallback – se a API não retornar o módulo, devolve só o form
+  return {
+    id: null,
+    ...moduleForm,
+  };
 }
 
 // POST /Module/completeModule
@@ -395,10 +441,7 @@ export async function getOptionsByQuestion(questionId) {
   return list.map((o) => ({
     question_id: o.question_id ?? o.QuestionId,
     option_text: o.option_text ?? o.OptionText,
-    is_correct:
-      o.is_correct ??
-      o.IsCorrect ??
-      false,
+    is_correct: o.is_correct ?? o.IsCorrect ?? false,
   }));
 }
 
@@ -407,7 +450,6 @@ export async function getQuizWithQuestionsByModule(moduleId) {
   const data = await apiGet(`/Quiz/getQuizWithQuestions/${moduleId}`);
   if (!data) return null;
 
-  // se o backend já retorna { quiz, questions }, tentamos aproveitar direto:
   const rawQuiz = data.quiz || data.Quiz || data;
   const rawQuestions = data.questions || data.Questions || data.items || [];
 
@@ -426,10 +468,7 @@ export async function getQuizWithQuestionsByModule(moduleId) {
     options: (q.options || q.Options || []).map((o) => ({
       question_id: o.question_id ?? o.QuestionId,
       option_text: o.option_text ?? o.OptionText,
-      is_correct:
-        o.is_correct ??
-        o.IsCorrect ??
-        false,
+      is_correct: o.is_correct ?? o.IsCorrect ?? false,
     })),
   }));
 
@@ -456,11 +495,11 @@ export async function getQuizzes() {
 }
 
 // =======================
-// CERTIFICADO / ASSINATURA
+// CERTIFICADO / ASSINATURA (LOCAL)
 // =======================
 
-// ainda não há endpoint de certificado no backend, então geramos só um "hash"
-// local (pode ser substituído depois por um endpoint de emissão).
+// por enquanto só gera um código local – dá pra trocar depois
+// por um endpoint de emissão/com assinatura digital do backend
 export async function issueCertificate(userId, courseId) {
   await fakeDelay(50);
 

@@ -2,6 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import UserAvatar from './UserAvatar';
 import { VIEWS } from '../constants';
 
+const ROLE_LABEL = {
+  1: 'Colaborador',
+  2: 'RH / Admin',
+  3: 'Gestor',
+};
+
 const NavBar = ({
   currentUser,
   currentView,
@@ -15,7 +21,8 @@ const NavBar = ({
   const avatarMenuRef = useRef(null);
 
   const showBackToCourse =
-    (currentView === VIEWS.PLAYER || currentView === VIEWS.QUIZ) && currentCourse;
+    (currentView === VIEWS.PLAYER || currentView === VIEWS.QUIZ) &&
+    currentCourse;
 
   const handleBackToCourse = () => {
     if (currentCourse) {
@@ -26,7 +33,10 @@ const NavBar = ({
   // fecha o menu ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (avatarMenuRef.current && !avatarMenuRef.current.contains(event.target)) {
+      if (
+        avatarMenuRef.current &&
+        !avatarMenuRef.current.contains(event.target)
+      ) {
         setMenuOpen(false);
       }
     };
@@ -46,7 +56,9 @@ const NavBar = ({
           <div className="text-xl font-bold text-white">SkillUp</div>
           <div className="flex space-x-2 sm:space-x-4">
             <button
-              className={`nav-item ${currentView === VIEWS.HOME ? 'active-nav' : ''}`}
+              className={`nav-item ${
+                currentView === VIEWS.HOME ? 'active-nav' : ''
+              }`}
               onClick={() => navTo(VIEWS.HOME)}
             >
               Home
@@ -54,7 +66,8 @@ const NavBar = ({
 
             <button
               className={`nav-item ${
-                currentView === VIEWS.CATALOG || currentView === VIEWS.COURSE_DETAIL
+                currentView === VIEWS.CATALOG ||
+                currentView === VIEWS.COURSE_DETAIL
                   ? 'active-nav'
                   : ''
               }`}
@@ -74,7 +87,7 @@ const NavBar = ({
               </button>
             )}
 
-            {/* NOVO: Admin RH */}
+            {/* Admin RH */}
             {isRH && (
               <button
                 className={`nav-item ${
@@ -101,7 +114,7 @@ const NavBar = ({
               id="user-display-role"
               className="text-xs text-gray-400"
             >
-              {currentUser.role}
+              {ROLE_LABEL[Number(currentUser.role)] || 'Colaborador'}
             </span>
           </div>
 
@@ -132,7 +145,6 @@ const NavBar = ({
                 className="absolute right-0 mt-2 w-40 rounded-xl shadow-lg card py-2 z-20"
                 style={{ backgroundColor: 'var(--color-mid-slate)' }}
               >
-                {/* Placeholder pra futuro: Meu Perfil, Configurações, etc */}
                 <button
                   onClick={onLogout}
                   className="w-full text-left px-4 py-2 text-sm text-gray-200 hover:bg-[rgba(255,255,255,0.06)]"

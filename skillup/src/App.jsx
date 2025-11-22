@@ -30,12 +30,12 @@ const App = () => {
   const [quizResult, setQuizResult] = useState(null);
     const [currentCertificate, setCurrentCertificate] = useState(null);
 
-  const isRH = currentUser?.role?.toLowerCase().includes('rh');
+  const isRH = Number(currentUser?.role) === 2;
 
   const handleLogin = async (email, password) => {
     const user = await apiLogin(email, password);
     if (user) {
-      const userIsRH = user.role?.toLowerCase().includes('rh');
+      const userIsRH = Number(user.role) === 2;
       setCurrentUser(user);
       setCurrentView(userIsRH ? VIEWS.DASHBOARD : VIEWS.HOME);
     } else {
