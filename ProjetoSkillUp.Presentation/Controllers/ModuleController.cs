@@ -26,7 +26,7 @@ namespace ProjetoSkillUp.Presentation.Controllers
                 return BadRequest(new { Message = "Id inválido" });
             }
 
-            var courses = _moduleRepository.getModulesByCourse(id);
+            var courses = _moduleRepository.GetModulesByCourse(id);
 
             if (courses == null)
             {

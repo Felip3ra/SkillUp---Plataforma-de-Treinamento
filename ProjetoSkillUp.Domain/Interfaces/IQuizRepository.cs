@@ -9,9 +9,7 @@ namespace ProjetoSkillUp.Domain.Interfaces
         Quiz GetQuizByModule(int moduleId);
         IEnumerable<Quiz_Questions> GetQuizQuestions(int quizId);
         IEnumerable<Quiz_Options> GetOptionsByQuestion(int questionId);
-
         QuizWithQuestionsDto GetQuizWithQuestionsByModule(int moduleId);
-
         Quiz CreateQuizWithQuestions(CreateQuizDto dto);
     }
 }

@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ProjetoSkillUp.Domain.Interfaces;
 using ProjetoSkillUp.Infrastructure.Context;
 using ProjetoSkillUp.Infrastructure.Repository;
-
+using AutoMapper;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -24,7 +25,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
 builder.Services.AddScoped<IEnrollmentsRepository, EnrollmentsRepository>();
-
+builder.Services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
