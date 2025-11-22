@@ -262,11 +262,11 @@ export async function getCourseById(courseId) {
 function mapLevelToBackend(level) {
   switch (level) {
     case 'BASIC':
-      return 0; // Basico
+      return 1; // Basico
     case 'INTERMEDIATE':
-      return 1; // Intermediario
+      return 2; // Intermediario
     case 'ADVANCED':
-      return 2; // Avancado
+      return 3; // Avancado
     default:
       return 0;
   }
