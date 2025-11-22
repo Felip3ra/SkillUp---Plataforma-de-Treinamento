@@ -17,7 +17,8 @@ namespace ProjetoSkillUp.Domain.Models
         public Level Level { get; set; }
         public int EstimatedDurationMinutes { get; set; }
         public bool IsMandatory { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public DateTime Created_at { get; set; } = DateTime.UtcNow;
+
         public DateTime UpdatedAt { get; set; }
 
         // FK do criador do curso

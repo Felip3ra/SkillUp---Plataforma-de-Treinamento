@@ -10,7 +10,8 @@ namespace ProjetoSkillUp.Domain.Models
         public int Score { get; set; }
         public bool Passed { get; set; }
         public int Attempts_Number { get; set; }
-        public DateTime? Created_At { get; set; } = DateTime.Now;
+        public DateTime Created_at { get; set; } = DateTime.UtcNow;
+
 
         public Quiz Quiz { get; set; }
         public Users User { get; set; }

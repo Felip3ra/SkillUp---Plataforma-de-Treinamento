@@ -10,7 +10,7 @@ namespace ProjetoSkillUp.Domain.Models
         public string Password_hash { get; set; }
         public Role Role { get; set; }
         public string Department { get; set; }
-        public DateTime Created_at { get; set; } = DateTime.Now;
+        public DateTime Created_at { get; set; } = DateTime.UtcNow;
         public DateTime? Update_at { get; set; }
 
         // ✔ Relacionamentos

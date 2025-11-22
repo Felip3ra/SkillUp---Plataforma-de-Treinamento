@@ -14,7 +14,8 @@ namespace ProjetoSkillUp.Domain.Models
         public TypeModules Type { get; set; }
         public string? ContentUrl { get; set; }
         public int OrderIndex { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public DateTime Created_at { get; set; } = DateTime.UtcNow;
+
 
         // FK
         public Course Course { get; set; }

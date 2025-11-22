@@ -6,7 +6,8 @@ public class Quiz
     public int ModuleId { get; set; }
 
     public string Title { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime Created_at { get; set; } = DateTime.UtcNow;
+
 
     public Module Module { get; set; }
     public ICollection<Quiz_Questions> Questions { get; set; }
