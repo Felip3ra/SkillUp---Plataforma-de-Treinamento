@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProjetoSkillUp.Domain.Interfaces;
 using ProjetoSkillUp.Domain.Models;
-using ProjetoSkillUp.Infrastructure.Repository;
-
 
 namespace ProjetoSkillUp.Presentation.Controllers
 {
@@ -11,15 +9,19 @@ namespace ProjetoSkillUp.Presentation.Controllers
     public class CourseController : Controller
     {
         private readonly IRepository<Course> _repositoryCourse;
+
         public CourseController(IRepository<Course> repository)
         {
             _repositoryCourse = repository;
         }
+
         #region Read
-        [HttpGet("$PegaCurso/{id}")]
-        public IActionResult PegaCurso(int id)
+
+        // GET /Course/GetCourse/1
+        [HttpGet("GetCourse/{id}")]
+        public IActionResult GetCourse(int id)
         {
-            if (id == null || id == 0)
+            if (id <= 0)
             {
                 return BadRequest(new { Message = "Id inválido" });
             }
@@ -28,40 +30,44 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
             if (course == null)
             {
-                return BadRequest(new { Message = "O curso não foi encontrado..." });
+                return NotFound(new { Message = "O curso não foi encontrado..." });
             }
 
             return Ok(new { Message = "Curso encontrado", Course = course });
         }
-        [HttpGet("GetCurses")]
-        public IActionResult GetCurses()
+
+        // GET /Course/GetCourses
+        [HttpGet("GetCourses")]
+        public IActionResult GetCourses()
         {
-            var course = _repositoryCourse.GetAll();
+            var courses = _repositoryCourse.GetAll() ?? new List<Course>();
 
-            if (course == null)
-            {
-                return BadRequest(new { Message = "O curso não foi encontrado..." });
-            }
-
-            return Ok(new { Message = "Cursos encontrado", Course = course });
+            return Ok(new { Message = "Cursos encontrados", Course = courses });
         }
+
         #endregion
 
         #region Create
+
+        // POST /Course/CriaCurso
         [HttpPost("CriaCurso")]
-        public IActionResult CriaCurso([FromBody] Course course) {
+        public IActionResult CriaCurso([FromBody] Course course)
+        {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new { Message = "Cadastro inválido" });
             }
+
             bool verificado = _repositoryCourse.Add(course);
 
-            if (verificado == true)
+            if (verificado)
             {
                 return Ok(new { Message = "Curso cadastrado com sucesso" });
             }
+
             return BadRequest(new { Message = "Cadastro inválido" });
         }
+
         #endregion
     }
 }

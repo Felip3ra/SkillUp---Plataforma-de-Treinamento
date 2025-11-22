@@ -1,300 +1,471 @@
 // src/services/skillupApi.js
 import { MOCK_DATA } from '../mockData';
 
-const fakeDelay = (ms = 150) => new Promise(res => setTimeout(res, ms));
+// ENDEREÇO DA SUA API .NET
+// ajuste para o host/porta que você estiver usando (https://localhost:5001, http://localhost:5000, etc.)
+const API_BASE_URL = 'https://localhost:5001';
 
-// LOGIN
-export async function login(email, password) {
-  await fakeDelay();
-  return MOCK_DATA.users.find(u => u.email === email) || null;
+// se quiser simular um pequeno delay visual
+const fakeDelay = (ms = 0) => new Promise((res) => setTimeout(res, ms));
+
+// helpers básicos de chamada HTTP
+async function apiGet(path) {
+  const resp = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'GET',
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error(`GET ${path} falhou: ${resp.status} ${text}`);
+  }
+
+  // pode não ter body (204)
+  try {
+    return await resp.json();
+  } catch {
+    return null;
+  }
 }
 
-// USERS
+async function apiPost(path, body, options = {}) {
+  const resp = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+    body: body != null ? JSON.stringify(body) : null,
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    throw new Error(`POST ${path} falhou: ${resp.status} ${text}`);
+  }
+
+  try {
+    return await resp.json();
+  } catch {
+    return null;
+  }
+}
+
+// helper pra pegar data.Course / data.course / data / etc.
+function unwrapList(data) {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return (
+    data.Course ||
+    data.Courses ||
+    data.course ||
+    data.courses ||
+    data.items ||
+    []
+  );
+}
+
+// =======================
+// LOGIN / USERS
+// =======================
+
+// POST /User/VerificaLogin?email=...&senha=...
+export async function login(email, password) {
+  await fakeDelay(100);
+
+  const resp = await fetch(
+    `${API_BASE_URL}/User/VerificaLogin?email=${encodeURIComponent(
+      email
+    )}&senha=${encodeURIComponent(password)}`,
+    {
+      method: 'POST',
+    }
+  );
+
+  if (!resp.ok) {
+    // login inválido
+    return null;
+  }
+
+  // ➜ A API hoje só diz se é válido ou não.
+  // Pegamos os dados do usuário do MOCK_DATA para manter tudo funcionando.
+  let user = MOCK_DATA.users.find((u) => u.email === email);
+
+  if (!user) {
+    // se não achar, cria um user "genérico"
+    const nameFromEmail = email.split('@')[0] || 'Usuário';
+    user = {
+      id: `local-${email}`,
+      email,
+      name: nameFromEmail,
+      role: 'Colaborador',
+      initials: nameFromEmail
+        .split('.')
+        .map((p) => p[0]?.toUpperCase())
+        .join('') || email[0]?.toUpperCase() || 'U',
+      department: 'N/A',
+    };
+  }
+
+  return user;
+}
+
+// ainda não temos endpoint de GET Users no backend.
+// mantemos MOCK_DATA pra Dashboard RH continuar funcionando.
 export async function getUsers() {
-  await fakeDelay();
+  await fakeDelay(50);
   return [...MOCK_DATA.users];
 }
 
-// NOVO: criar usuário (mock)
-export async function createUser({ name, email, role, department }) {
-  await fakeDelay();
+// criar usuário: chama backend + mantém mock em sincronia básica
+export async function createUser(userForm) {
+  await fakeDelay(50);
 
-  const exists = MOCK_DATA.users.find(u => u.email === email);
-  if (exists) {
-    throw new Error('Já existe um usuário com este e-mail.');
+  // tenta mandar pro backend (ajuste o shape conforme o modelo Users)
+  try {
+    await apiPost('/User/RegistraUsuario', {
+      // mapeamento mais genérico possível:
+      name: userForm.name,
+      email: userForm.email,
+      role: userForm.role,
+      department: userForm.department,
+      // se seu modelo tiver senha obrigatória, adicione aqui
+      // password: "123456"
+    });
+  } catch (e) {
+    console.error('Erro ao registrar usuário no backend:', e);
+    // não dou throw pq quero manter o mock vivo
   }
 
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(p => p[0]?.toUpperCase())
-    .join('') || 'US';
+  // mantém também no MOCK_DATA para o front continuar enxergando
+  const exists = MOCK_DATA.users.some((u) => u.email === userForm.email);
+  if (!exists) {
+    const initials =
+      userForm.name
+        ?.split(' ')
+        .map((p) => p[0]?.toUpperCase())
+        .join('') || 'U';
 
-  const newUser = {
-    id: `u${MOCK_DATA.users.length + 1}`,
-    email,
-    name,
-    role,
-    initials,
-    department,
-  };
+    MOCK_DATA.users.push({
+      id: `mock-${Date.now()}`,
+      email: userForm.email,
+      name: userForm.name,
+      role: userForm.role || 'Colaborador',
+      initials,
+      department: userForm.department || '',
+    });
+  }
 
-  MOCK_DATA.users.push(newUser);
-  console.log('[mock] usuário criado:', newUser);
-
-  return newUser;
+  return true;
 }
 
+// =======================
 // COURSES
+// =======================
+
+// GET /Course/GetCourses
 export async function getCourses() {
-  await fakeDelay();
-  return [...MOCK_DATA.courses];
+  const data = await apiGet('/Course/GetCourses');
+  const list = unwrapList(data);
+
+  // mapeia para o formato esperado pelo front
+  return list.map((c) => ({
+    id: c.id ?? c.Id ?? c.courseId ?? c.CourseId,
+    code: c.code ?? c.Code ?? '',
+    name: c.name ?? c.Nome ?? c.title ?? c.Title ?? '',
+    description: c.description ?? c.Description ?? '',
+    area: c.area ?? c.Area ?? '',
+    level: c.level ?? c.Level ?? 'BASIC',
+    estimated_duration_minutes:
+      c.estimated_duration_minutes ??
+      c.EstimatedDurationMinutes ??
+      c.cargaHoraria ??
+      c.CargaHoraria ??
+      60,
+    is_mandatory:
+      c.is_mandatory ??
+      c.IsMandatory ??
+      c.obrigatorio ??
+      c.Obrigatorio ??
+      false,
+    thumbnail_url: c.thumbnail_url ?? c.ThumbnailUrl ?? '',
+  }));
 }
 
+// GET /Course/GetCourse/{id}
 export async function getCourseById(courseId) {
-  await fakeDelay();
-  return MOCK_DATA.courses.find(c => c.id === courseId) || null;
-}
+  const data = await apiGet(`/Course/GetCourse/${courseId}`);
+  const c =
+    data?.Course ||
+    data?.course ||
+    data ||
+    null;
 
-// NOVO: criar curso (mock)
-export async function createCourse({
-  code,
-  name,
-  description,
-  area,
-  level,
-  estimated_duration_minutes,
-  is_mandatory,
-  thumbnail_url,
-}) {
-  await fakeDelay();
+  if (!c) return null;
 
-  const exists = MOCK_DATA.courses.find(
-    c => c.code.toUpperCase() === code.toUpperCase(),
-  );
-  if (exists) {
-    throw new Error('Já existe um curso com este código.');
-  }
-
-  const newCourse = {
-    id: `c${MOCK_DATA.courses.length + 1}`,
-    code,
-    name,
-    description,
-    area,
-    level,
-    estimated_duration_minutes: Number(estimated_duration_minutes) || 0,
-    is_mandatory: !!is_mandatory,
-    thumbnail_url: thumbnail_url || null,
+  return {
+    id: c.id ?? c.Id ?? c.courseId ?? c.CourseId,
+    code: c.code ?? c.Code ?? '',
+    name: c.name ?? c.Nome ?? c.title ?? c.Title ?? '',
+    description: c.description ?? c.Description ?? '',
+    area: c.area ?? c.Area ?? '',
+    level: c.level ?? c.Level ?? 'BASIC',
+    estimated_duration_minutes:
+      c.estimated_duration_minutes ??
+      c.EstimatedDurationMinutes ??
+      c.cargaHoraria ??
+      c.CargaHoraria ??
+      60,
+    is_mandatory:
+      c.is_mandatory ??
+      c.IsMandatory ??
+      c.obrigatorio ??
+      c.Obrigatorio ??
+      false,
+    thumbnail_url: c.thumbnail_url ?? c.ThumbnailUrl ?? '',
   };
-
-  MOCK_DATA.courses.push(newCourse);
-  console.log('[mock] curso criado:', newCourse);
-
-  return newCourse;
 }
 
-// MODULES
+// POST /Course/CriaCurso
+export async function createCourse(courseForm) {
+  await apiPost('/Course/CriaCurso', courseForm);
+  return true;
+}
+
+// =======================
+// MODULES (ETAPAS)
+// =======================
+
+// GET /Module/getModulesByCourse/{id}
 export async function getModulesByCourse(courseId) {
-  await fakeDelay();
-  return MOCK_DATA.modules
-    .filter(m => m.course_id === courseId)
-    .sort((a, b) => a.order_index - b.order_index);
+  const data = await apiGet(`/Module/getModulesByCourse/${courseId}`);
+  const list = unwrapList(data);
+
+  return list
+    .map((m) => ({
+      id: m.id ?? m.Id ?? m.moduleId ?? m.ModuleId,
+      course_id: m.course_id ?? m.CourseId ?? m.courseId,
+      title: m.title ?? m.Titulo ?? m.Name ?? m.Nome,
+      type: m.type ?? m.Type ?? 'VIDEO',
+      order_index: m.order_index ?? m.OrderIndex ?? 1,
+      content_url: m.content_url ?? m.ContentUrl ?? '',
+      description: m.description ?? m.Description ?? '',
+    }))
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
 }
 
-export async function createModule({
-  course_id,
-  title,
-  type,
-  order_index,
-  content_url,
-  description,
-}) {
-  await fakeDelay();
-
-  if (!course_id) {
-    throw new Error('Selecione um curso para vincular o módulo.');
-  }
-
-  const newModule = {
-    id: `m${MOCK_DATA.modules.length + 1}`,
-    course_id,
-    title,
-    type, // 'VIDEO' | 'QUIZ' | 'DOC' etc.
-    content_url: content_url || null,
-    order_index: Number(order_index) || 1,
-    description: description || '',
-  };
-
-  MOCK_DATA.modules.push(newModule);
-  console.log('[mock] módulo criado:', newModule);
-
-  return newModule;
-}
-
-
-export async function getModuleById(moduleId) {
-  await fakeDelay();
-  return MOCK_DATA.modules.find(m => m.id === moduleId) || null;
-}
-
+// GET /Module/getModules
 export async function getModules() {
-  await fakeDelay();
-  return [...MOCK_DATA.modules];
+  const data = await apiGet('/Module/getModules');
+  const list = unwrapList(data);
+
+  return list.map((m) => ({
+    id: m.id ?? m.Id ?? m.moduleId ?? m.ModuleId,
+    course_id: m.course_id ?? m.CourseId ?? m.courseId,
+    title: m.title ?? m.Titulo ?? m.Name ?? m.Nome,
+    type: m.type ?? m.Type ?? 'VIDEO',
+    order_index: m.order_index ?? m.OrderIndex ?? 1,
+    content_url: m.content_url ?? m.ContentUrl ?? '',
+    description: m.description ?? m.Description ?? '',
+  }));
 }
 
-// ENROLLMENTS
-export async function getEnrollments() {
-  await fakeDelay();
-  return [...MOCK_DATA.enrollments];
+// GET módulo por id (front usa isso)
+export async function getModuleById(moduleId) {
+  // não temos endpoint específico, então pegamos todos e filtramos
+  const all = await getModules();
+  return all.find((m) => String(m.id) === String(moduleId)) || null;
 }
 
-export async function getEnrollmentsByUser(userId) {
-  await fakeDelay();
-  return MOCK_DATA.enrollments.filter(e => e.user_id === userId);
+// POST /Module/CreateModule
+export async function createModule(moduleForm) {
+  await apiPost('/Module/CreateModule', moduleForm);
+  return true;
 }
 
-// COMPLETION DE MÓDULO
+// POST /Module/completeModule
 export async function completeModule(userId, moduleId) {
-  await fakeDelay();
+  await apiPost('/Module/completeModule', {
+    userId,
+    moduleId,
+  });
+  return true;
+}
 
-  if (!MOCK_DATA.module_completions) {
-    MOCK_DATA.module_completions = [];
-  }
+// =======================
+// ENROLLMENTS (INSCRIÇÕES)
+// =======================
 
-  const already = MOCK_DATA.module_completions.find(
-    mc => mc.user_id === userId && mc.module_id === moduleId,
+// GET /Enrollment/GetEnrollments
+export async function getEnrollments() {
+  const data = await apiGet('/Enrollment/GetEnrollments');
+  const list = unwrapList(data);
+
+  return list.map((e) => ({
+    id: e.id ?? e.Id,
+    user_id: e.user_id ?? e.UserId,
+    course_id: e.course_id ?? e.CourseId,
+    status: e.status ?? e.Status ?? 'NOT_STARTED',
+    completed_at: e.completed_at ?? e.CompletedAt ?? null,
+  }));
+}
+
+// GET /Enrollment/GetEnrollmentsByUser/{id}
+export async function getEnrollmentsByUser(userId) {
+  const data = await apiGet(`/Enrollment/GetEnrollmentsByUser/${userId}`);
+  const list = unwrapList(data);
+
+  return list.map((e) => ({
+    id: e.id ?? e.Id,
+    user_id: e.user_id ?? e.UserId,
+    course_id: e.course_id ?? e.CourseId,
+    status: e.status ?? e.Status ?? 'NOT_STARTED',
+    completed_at: e.completed_at ?? e.CompletedAt ?? null,
+  }));
+}
+
+// ainda não temos endpoint pra "concluir curso" no backend.
+// mantemos um ajuste em memória para não quebrar o front.
+export async function completeCourse(userId, courseId) {
+  await fakeDelay(50);
+
+  const existing = MOCK_DATA.enrollments.find(
+    (e) => e.user_id === userId && e.course_id === courseId
   );
 
-  if (!already) {
-    MOCK_DATA.module_completions.push({
-      id: `mc_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+  if (existing) {
+    existing.status = 'COMPLETED';
+    existing.completed_at = new Date().toISOString();
+  } else {
+    MOCK_DATA.enrollments.push({
+      id: `mock-enr-${Date.now()}`,
       user_id: userId,
-      module_id: moduleId,
+      course_id: courseId,
+      status: 'COMPLETED',
       completed_at: new Date().toISOString(),
     });
   }
 
-  console.log('[mock] módulo concluído:', { userId, moduleId });
   return true;
 }
 
-// COMPLETION DE CURSO
-export async function completeCourse(userId, courseId) {
-  await fakeDelay();
+// =======================
+// QUIZ
+// =======================
 
-  let enrollment = MOCK_DATA.enrollments.find(
-    e => e.user_id === userId && e.course_id === courseId,
-  );
-
-  if (!enrollment) {
-    enrollment = {
-      id: `e_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-      user_id: userId,
-      course_id: courseId,
-    };
-    MOCK_DATA.enrollments.push(enrollment);
-  }
-
-  enrollment.status = 'COMPLETED';
-  enrollment.completed_at = new Date().toISOString();
-
-  console.log('[mock] curso concluído:', { userId, courseId });
-  return true;
-}
-
-// QUIZZES
+// GET /Quiz/getQuizByModule/{moduleId}
 export async function getQuizByModule(moduleId) {
-  await fakeDelay();
-  return MOCK_DATA.quizzes.find(q => q.module_id === moduleId) || null;
+  const data = await apiGet(`/Quiz/getQuizByModule/${moduleId}`);
+  if (!data) return null;
+
+  const q = data.quiz || data.Quiz || data;
+
+  return {
+    id: q.id ?? q.Id,
+    module_id: q.module_id ?? q.ModuleId,
+    passing_score: q.passing_score ?? q.PassingScore ?? 70,
+  };
 }
 
+// GET /Quiz/getQuestions/{quizId}
 export async function getQuizQuestions(quizId) {
-  await fakeDelay();
-  return MOCK_DATA.quiz_questions
-    .filter(q => q.quiz_id === quizId)
-    .sort((a, b) => a.order_index - b.order_index);
+  const data = await apiGet(`/Quiz/getQuestions/${quizId}`);
+  const list = unwrapList(data);
+
+  return list
+    .map((q) => ({
+      id: q.id ?? q.Id,
+      quiz_id: q.quiz_id ?? q.QuizId,
+      question_text: q.question_text ?? q.QuestionText,
+      type: q.type ?? q.Type ?? 'MULTIPLE_CHOICE',
+      order_index: q.order_index ?? q.OrderIndex ?? 1,
+    }))
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
 }
 
+// GET /Quiz/getOptions/{questionId}
 export async function getOptionsByQuestion(questionId) {
-  await fakeDelay();
-  return MOCK_DATA.quiz_options.filter(o => o.question_id === questionId);
+  const data = await apiGet(`/Quiz/getOptions/${questionId}`);
+  const list = unwrapList(data);
+
+  return list.map((o) => ({
+    question_id: o.question_id ?? o.QuestionId,
+    option_text: o.option_text ?? o.OptionText,
+    is_correct:
+      o.is_correct ??
+      o.IsCorrect ??
+      false,
+  }));
 }
 
+// GET /Quiz/getQuizWithQuestions/{moduleId}
 export async function getQuizWithQuestionsByModule(moduleId) {
-  await fakeDelay();
-  const quiz = MOCK_DATA.quizzes.find(q => q.module_id === moduleId);
-  if (!quiz) return null;
+  const data = await apiGet(`/Quiz/getQuizWithQuestions/${moduleId}`);
+  if (!data) return null;
 
-  const questions = MOCK_DATA.quiz_questions
-    .filter(q => q.quiz_id === quiz.id)
-    .sort((a, b) => a.order_index - b.order_index)
-    .map(q => ({
-      ...q,
-      options: MOCK_DATA.quiz_options.filter(o => o.question_id === q.id),
-    }));
+  // se o backend já retorna { quiz, questions }, tentamos aproveitar direto:
+  const rawQuiz = data.quiz || data.Quiz || data;
+  const rawQuestions = data.questions || data.Questions || data.items || [];
+
+  const quiz = {
+    id: rawQuiz.id ?? rawQuiz.Id,
+    module_id: rawQuiz.module_id ?? rawQuiz.ModuleId,
+    passing_score: rawQuiz.passing_score ?? rawQuiz.PassingScore ?? 70,
+  };
+
+  const questions = rawQuestions.map((q) => ({
+    id: q.id ?? q.Id,
+    quiz_id: q.quiz_id ?? q.QuizId,
+    question_text: q.question_text ?? q.QuestionText,
+    type: q.type ?? q.Type ?? 'MULTIPLE_CHOICE',
+    order_index: q.order_index ?? q.OrderIndex ?? 1,
+    options: (q.options || q.Options || []).map((o) => ({
+      question_id: o.question_id ?? o.QuestionId,
+      option_text: o.option_text ?? o.OptionText,
+      is_correct:
+        o.is_correct ??
+        o.IsCorrect ??
+        false,
+    })),
+  }));
 
   return { quiz, questions };
 }
 
-export async function createQuizWithQuestions({ module_id, passing_score, questions }) {
-  await fakeDelay();
-
-  if (!module_id) {
-    throw new Error('Módulo inválido para criar quiz.');
-  }
-
-  const quizId = `q${MOCK_DATA.quizzes.length + 1}`;
-
-  const quiz = {
-    id: quizId,
-    module_id,
-    passing_score: Number(passing_score) || 70,
-  };
-
-  MOCK_DATA.quizzes.push(quiz);
-
-  questions.forEach((q, idx) => {
-    const questionId = `qq${MOCK_DATA.quiz_questions.length + 1}`;
-
-    // pergunta
-    MOCK_DATA.quiz_questions.push({
-      id: questionId,
-      quiz_id: quizId,
-      question_text: q.text,
-      type: 'MULTIPLE_CHOICE',
-      order_index: idx + 1,
-    });
-
-    // opções
-    q.options.forEach((opt, optIdx) => {
-      MOCK_DATA.quiz_options.push({
-        question_id: questionId,
-        option_text: opt.text,
-        is_correct: optIdx === q.correctIndex,
-      });
-    });
-  });
-
-  console.log('[mock] quiz criado:', quiz);
-  return quiz;
+// POST /Quiz/createQuiz
+export async function createQuizWithQuestions(dto) {
+  await apiPost('/Quiz/createQuiz', dto);
+  return true;
 }
 
-
+// ainda não temos endpoints pra tentativas de quiz no backend.
+// mantemos mock pra Dashboard RH.
 export async function getQuizAttempts() {
-  await fakeDelay();
+  await fakeDelay(50);
   return [...MOCK_DATA.quiz_attempts];
 }
 
+// idem para lista de quizzes genérica
 export async function getQuizzes() {
-  await fakeDelay();
+  await fakeDelay(50);
   return [...MOCK_DATA.quizzes];
 }
 
-// COMPLEÇÕES DE MÓDULO POR USUÁRIO (pra CourseDetail)
-export async function getModuleCompletionsByUser(userId) {
-  await fakeDelay();
-  const list = MOCK_DATA.module_completions || [];
-  return list.filter(mc => mc.user_id === userId);
+// =======================
+// CERTIFICADO / ASSINATURA
+// =======================
+
+// ainda não há endpoint de certificado no backend, então geramos só um "hash"
+// local (pode ser substituído depois por um endpoint de emissão).
+export async function issueCertificate(userId, courseId) {
+  await fakeDelay(50);
+
+  const code = crypto.randomUUID();
+  const issued_at = new Date().toISOString();
+
+  return {
+    id: code,
+    user_id: userId,
+    course_id: courseId,
+    issued_at,
+    code,
+  };
 }
