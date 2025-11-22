@@ -258,38 +258,43 @@ export async function getCourseById(courseId) {
   };
 }
 
-// mapeia o level do front (string) pro enum numérico do backend
 function mapLevelToBackend(level) {
   switch (level) {
     case 'BASIC':
-      return 1; // Basico
+      return 0; // Basico
     case 'INTERMEDIATE':
-      return 2; // Intermediario
+      return 1; // Intermediario
     case 'ADVANCED':
-      return 3; // Avancado
+      return 2; // Avancado
     default:
       return 0;
   }
 }
 
 // POST /Course/CriaCurso
-export async function createCourse(courseForm) {
+export async function createCourse(courseForm, creatorId) {
   const payload = {
-    // nomes pensados pra bater com o modelo C# (case-insensitive)
     code: courseForm.code,
     name: courseForm.name,
     description: courseForm.description,
     area: courseForm.area,
-    level: mapLevelToBackend(courseForm.level), // 👈 AQUI VAI NÚMERO
+    level: mapLevelToBackend(courseForm.level),
     estimatedDurationMinutes:
       Number(courseForm.estimated_duration_minutes) || 0,
     isMandatory: !!courseForm.is_mandatory,
     thumbnailUrl: courseForm.thumbnail_url || null,
+
+    // exigidos pelo backend
+    modules: [],
+    enrollments: [],
+
+    createdBy: Number(creatorId) || 0,
   };
 
   await apiPost('/Course/CriaCurso', payload);
   return true;
 }
+
 
 
 // =======================
