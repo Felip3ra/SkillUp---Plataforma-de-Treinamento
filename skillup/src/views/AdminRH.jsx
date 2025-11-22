@@ -122,12 +122,11 @@ const AdminRH = ({ currentUser, isRH }) => {
     setCourseError(null);
 
     try {
-      // 🔹 AQUI entra o id do usuário logado
+      // 👇 agora passa o id do usuário logado
       await createCourse(courseForm, currentUser?.id);
 
       setCourseMessage('Curso criado com sucesso.');
 
-      // recarregar lista de cursos para o formulário de módulo
       const list = await getCourses();
       setCourses(list);
 
@@ -147,6 +146,7 @@ const AdminRH = ({ currentUser, isRH }) => {
       setCourseLoading(false);
     }
   };
+
 
   // ===== HANDLERS MÓDULO =====
   const handleModuleChange = (e) => {

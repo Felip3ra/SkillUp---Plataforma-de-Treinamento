@@ -272,28 +272,36 @@ function mapLevelToBackend(level) {
 }
 
 // POST /Course/CriaCurso
+// src/services/skillupApi.js
+
+// POST /Course/CriaCurso
 export async function createCourse(courseForm, creatorId) {
   const payload = {
     code: courseForm.code,
     name: courseForm.name,
     description: courseForm.description,
     area: courseForm.area,
-    level: mapLevelToBackend(courseForm.level),
+
+    // enum Level no backend: BASIC / INTERMEDIATE / ADVANCED
+    level: courseForm.level,
+
     estimatedDurationMinutes:
       Number(courseForm.estimated_duration_minutes) || 0,
     isMandatory: !!courseForm.is_mandatory,
-    thumbnailUrl: courseForm.thumbnail_url || null,
+    thumbnailUrl: courseForm.thumbnail_url,
 
-    // exigidos pelo backend
+    // 🔹 FK do criador (id do usuário logado)
+    createdById: Number(creatorId),
+
+    // 🔹 se o model está marcando como required, manda vazio
     modules: [],
     enrollments: [],
-
-    createdBy: Number(creatorId) || 0,
   };
 
   await apiPost('/Course/CriaCurso', payload);
   return true;
 }
+
 
 
 
