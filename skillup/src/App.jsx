@@ -13,7 +13,7 @@ import Player from './views/Player';
 import Quiz from './views/Quiz';
 import Certificate from './views/Certificate';
 import DashboardRH from './views/DashboardRH';
-import AdminRH from './views/AdminRH'; // NOVO
+import AdminRH from './views/AdminRH';
 
 import {
   login as apiLogin,
@@ -28,6 +28,7 @@ const App = () => {
   const [currentCourse, setCurrentCourse] = useState(null);
   const [currentModule, setCurrentModule] = useState(null);
   const [quizResult, setQuizResult] = useState(null);
+    const [currentCertificate, setCurrentCertificate] = useState(null);
 
   const isRH = currentUser?.role?.toLowerCase().includes('rh');
 
@@ -47,6 +48,7 @@ const App = () => {
     setCurrentCourse(null);
     setCurrentModule(null);
     setQuizResult(null);
+    setCurrentCertificate(null);
     setCurrentView(VIEWS.LOGIN);
   };
 
@@ -77,6 +79,9 @@ const App = () => {
 
     if (result?.passed && currentUser && currentCourse) {
       await completeCourse(currentUser.id, currentCourse.id);
+
+      const cert = await issueCertificate(currentUser.id, currentCourse.id);
+      setCurrentCertificate(cert);
     }
 
     setCurrentView(VIEWS.QUIZ);
@@ -94,6 +99,7 @@ const App = () => {
       setCurrentCourse(null);
       setCurrentModule(null);
       setQuizResult(null);
+      setCurrentCertificate(null);
     }
   }, []);
 
@@ -107,6 +113,7 @@ const App = () => {
       navTo,
       isRH,
       loadCertificate,
+      currentCertificate,
     };
 
     switch (currentView) {
