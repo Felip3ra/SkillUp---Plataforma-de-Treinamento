@@ -34,7 +34,8 @@ const AdminRH = ({ currentUser, isRH }) => {
     name: '',
     description: '',
     area: '',
-    level: 'BASIC',
+    // 🔹 tem que bater com o enum Level do backend (Basic / Intermediate / Advanced)
+    level: 'Basic',
     estimated_duration_minutes: 60,
     is_mandatory: false,
     thumbnail_url: '',
@@ -122,7 +123,7 @@ const AdminRH = ({ currentUser, isRH }) => {
     setCourseError(null);
 
     try {
-      // 👇 agora passa o id do usuário logado
+      // passa o id do usuário logado como CreatedById
       await createCourse(courseForm, currentUser?.id);
 
       setCourseMessage('Curso criado com sucesso.');
@@ -135,7 +136,7 @@ const AdminRH = ({ currentUser, isRH }) => {
         name: '',
         description: '',
         area: '',
-        level: 'BASIC',
+        level: 'Basic',
         estimated_duration_minutes: 60,
         is_mandatory: false,
         thumbnail_url: '',
@@ -146,7 +147,6 @@ const AdminRH = ({ currentUser, isRH }) => {
       setCourseLoading(false);
     }
   };
-
 
   // ===== HANDLERS MÓDULO =====
   const handleModuleChange = (e) => {
@@ -222,7 +222,7 @@ const AdminRH = ({ currentUser, isRH }) => {
 
             return {
               text: q.text.trim(),
-              options: opts.map((t) => ({ text: t })),
+              options: opts.map((t) => ({ text: t })), // compatível com createQuizWithQuestions
               correctIndex,
             };
           })
@@ -473,9 +473,10 @@ const AdminRH = ({ currentUser, isRH }) => {
                     color: 'var(--color-text-light)',
                   }}
                 >
-                  <option value="BASIC">Básico</option>
-                  <option value="INTERMEDIATE">Intermediário</option>
-                  <option value="ADVANCED">Avançado</option>
+                  {/* 🔹 valores alinhados com o enum Level do backend */}
+                  <option value="Basic">Básico</option>
+                  <option value="Intermediate">Intermediário</option>
+                  <option value="Advanced">Avançado</option>
                 </select>
               </div>
               <div>
@@ -588,7 +589,7 @@ const AdminRH = ({ currentUser, isRH }) => {
                 required
                 value={moduleForm.title}
                 onChange={handleModuleChange}
-                className="w-full px-3 py-2 rounded-lg border text-sm"
+                className="w-full px-3 py-2 rounded-lg border textSm"
                 style={{
                   backgroundColor: 'var(--color-mid-slate)',
                   borderColor: 'var(--color-light-slate)',

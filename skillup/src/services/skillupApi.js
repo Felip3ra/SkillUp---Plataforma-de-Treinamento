@@ -272,9 +272,6 @@ function mapLevelToBackend(level) {
 }
 
 // POST /Course/CriaCurso
-// src/services/skillupApi.js
-
-// POST /Course/CriaCurso
 export async function createCourse(courseForm, creatorId) {
   const payload = {
     course: {
