@@ -277,30 +277,26 @@ function mapLevelToBackend(level) {
 // POST /Course/CriaCurso
 export async function createCourse(courseForm, creatorId) {
   const payload = {
-    code: courseForm.code,
-    name: courseForm.name,
-    description: courseForm.description,
-    area: courseForm.area,
-
-    // enum Level no backend: BASIC / INTERMEDIATE / ADVANCED
-    level: courseForm.level,
-
-    estimatedDurationMinutes:
-      Number(courseForm.estimated_duration_minutes) || 0,
-    isMandatory: !!courseForm.is_mandatory,
-    thumbnailUrl: courseForm.thumbnail_url,
-
-    // 🔹 FK do criador (id do usuário logado)
-    createdById: Number(creatorId),
-
-    // 🔹 se o model está marcando como required, manda vazio
-    modules: [],
-    enrollments: [],
+    course: {
+      code: courseForm.code,
+      name: courseForm.name,
+      description: courseForm.description,
+      area: courseForm.area,
+      // enviar como string que o enum espera
+      level: courseForm.level, // "BASIC", "INTERMEDIATE" ou "ADVANCED"
+      estimatedDurationMinutes: Number(courseForm.estimated_duration_minutes) || 0,
+      isMandatory: !!courseForm.is_mandatory,
+      thumbnailUrl: courseForm.thumbnail_url,
+      createdById: Number(creatorId),
+      modules: [],        // se requerido
+      enrollments: []     // se requerido
+    }
   };
 
   await apiPost('/Course/CriaCurso', payload);
   return true;
 }
+
 
 
 
