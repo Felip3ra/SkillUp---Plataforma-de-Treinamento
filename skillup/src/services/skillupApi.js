@@ -3,7 +3,7 @@ import { MOCK_DATA } from '../mockData';
 
 // ENDEREÇO DA SUA API .NET
 // ajuste para o host/porta que você estiver usando (https://localhost:5001, http://localhost:5000, etc.)
-const API_BASE_URL = 'https://localhost:5001';
+const API_BASE_URL = 'https://localhost:7087';
 
 // se quiser simular um pequeno delay visual
 const fakeDelay = (ms = 0) => new Promise((res) => setTimeout(res, ms));
@@ -107,6 +107,12 @@ export async function login(email, password) {
 
   return user;
 }
+
+export async function getModuleCompletionsByUser(userId) {
+  const response = await api.get(`/moduleCompletion/user/${userId}`);
+  return response.data;
+}
+
 
 // ainda não temos endpoint de GET Users no backend.
 // mantemos MOCK_DATA pra Dashboard RH continuar funcionando.

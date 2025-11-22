@@ -35,22 +35,36 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             }   
         }
 
-        public bool VerifyLoginAndPassword(string email, string senha)
-        {
-            try
-            {
-                Users user = _context.Users.FirstOrDefault(x => x.Name == email);
-                
-                if (user == null) {
-                    return false;
-                }
-                return BCrypt.Net.BCrypt.Verify(senha, user.Password_hash);
+       public Users? VerifyLoginAndPassword(string email, string senha)
+{
+    try
+    {
+        // Busca por email (correto)
+        var user = _context.Users.FirstOrDefault(x => x.Name == email);
 
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+        // Se não encontrou, retorna null
+        if (user == null)
+        {
+            return null;
         }
+
+        // Verifica a senha com BCrypt
+        bool passwordOk = BCrypt.Net.BCrypt.Verify(senha, user.Password_hash);
+
+        if (!passwordOk)
+        {
+            return null;
+        }
+
+        // Tudo certo → retorna o usuário
+        return user;
+    }
+    catch
+    {
+        // mantém stack trace
+        throw;
+    }
+}
+
     }
 }

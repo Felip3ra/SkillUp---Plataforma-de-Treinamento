@@ -20,11 +20,11 @@ namespace ProjetoSkillUp.Presentation.Controllers
             if (email is null || senha is null) {
                 return BadRequest(new { Message = "Um dos campos está vazio"});
             }
-            bool verificado = _userRepository.VerifyLoginAndPassword(email, senha);
+            var verificado = _userRepository.VerifyLoginAndPassword(email, senha);
 
-            if(verificado == true)
+            if(verificado != null)
             {
-                return Ok(new { Message = "Usuário validado com sucesso"});
+                return Ok(new { Message = "Usuário validado com sucesso", User = verificado});
             }
             return BadRequest(new { Message = "Usuário não é válido" });
         }

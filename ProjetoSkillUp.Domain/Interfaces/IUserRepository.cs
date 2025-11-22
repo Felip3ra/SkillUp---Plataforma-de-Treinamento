@@ -9,7 +9,7 @@ namespace ProjetoSkillUp.Domain.Interfaces
 {
     public interface IUserRepository
     {
-        bool VerifyLoginAndPassword(string email, string senha);
+        Users? VerifyLoginAndPassword(string email, string senha);
         bool RegisterUser(Users user);
     }
 }
