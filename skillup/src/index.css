@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Cores Personalizadas - Esquema Neutro/Azul */
+:root {
+  /* Cores base neutras */
+  --color-dark-neutral: #1A202C; /* Fundo principal (quase preto) */
+  --color-mid-neutral: #2D3748;  /* Containers principais (cinza escuro) */
+  --color-light-neutral: #4A5568; /* Bordas e acentos suaves (cinza médio) */
+  --color-text-light: #F8FAFC;   /* Texto claro */
+
+  /* Cores de acento azuis */
+  --color-accent-blue-primary: #3E82F7; /* Azul primário (o mesmo que antes) */
+  --color-accent-blue-secondary: #4299E1; /* Azul secundário/claro */
+  --color-accent-blue-dark: #2C5282;    /* Azul escuro (para contraste ou botões) */
+}
+
+/* Fundo principal escuro e profissional */
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--color-dark-neutral); /* Alterado de dark-purple para dark-neutral */
+}
+
+/* Containers principais */
+#app-container,
+#login-form-container .card {
+  background-color: var(--color-mid-neutral); /* Alterado de mid-purple para mid-neutral */
+}
+
+/* Estilo geral para cards */
+.card {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease-in-out;
+  border: 1px solid var(--color-light-neutral); /* Alterado de light-purple para light-neutral */
+  border-radius: 1rem;
+}
+.card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  transform: translateY(-3px);
+}
+
+/* Botões com gradiente (Alterado para um gradiente de tons de azul) */
+.btn-primary {
+  background: linear-gradient(90deg, var(--color-accent-blue-primary) 0%, var(--color-accent-blue-secondary) 100%);
+  color: white;
+  font-weight: 700;
+  border: none;
+  transition: opacity 0.3s;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+/* Navegação */
+.nav-item {
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  transition: background-color 0.2s, color 0.2s;
+  color: #A0AEC0; /* Um cinza claro neutro para texto inativo */
+}
+.nav-item:hover {
+  background-color: var(--color-light-neutral); /* Alterado de light-purple para light-neutral */
+  color: var(--color-text-light);
+}
+.active-nav {
+  background: var(--color-light-neutral); /* Alterado de light-purple para light-neutral */
+  color: var(--color-text-light);
+  font-weight: 600;
+}
+
+/* Tema escuro */
+.text-dark-theme {
+  color: var(--color-text-light);
+}
+.border-dark-theme {
+  border-color: var(--color-light-neutral); /* Alterado de light-purple para light-neutral */
+}
+.border-light-purple {
+  /* Renomeei esta classe em linha abaixo, mantendo o conteúdo da cor neutra */
+  border-color: var(--color-light-neutral); 
+}
+
+/* Avatar */
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-accent-blue-primary); /* Alterado o fundo para azul primário */
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  /* Alterado o anel do avatar para mid-neutral e accent-blue-primary */
+  box-shadow: 0 0 0 2px var(--color-mid-neutral), 0 0 0 4px var(--color-accent-blue-primary); 
+}
+
+/* Métricas */
+.metric-card {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+}
+
+/* Certificado */
+.certificate-border {
+  max-width: 900px;
+  margin: 0 auto;
+  background-color: var(--color-text-light); /* Cor de fundo claro padrão */
+  border-radius: 1.5rem;
+  padding: 3rem 3rem 2rem;
+}
+.certificate-inner-border {
+  border: 2px solid #E2E8F0; /* Um cinza bem claro */
+  border-radius: 1.25rem;
+  padding: 2.5rem 2rem;
+}
+.certificate-font {
+  font-family: 'Playfair Display', ui-serif, Georgia, 'Times New Roman', serif;
+}
+
+/* Impressão */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
