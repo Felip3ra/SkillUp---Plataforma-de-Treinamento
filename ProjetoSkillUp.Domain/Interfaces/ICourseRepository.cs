@@ -8,6 +8,6 @@ namespace ProjetoSkillUp.Domain.Interfaces
 {
     public interface ICourseRepository
     {
-        void CompleteCourse(int userId, int courseId);
+        Task CompleteCourseAsync(int userId, int courseId);
     }
 }

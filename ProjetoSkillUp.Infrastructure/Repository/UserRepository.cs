@@ -20,14 +20,14 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             _context = context;
         }
 
-        public bool RegisterUser(Users user)
+        public async Task<bool> RegisterUserAsync(Users user)
         {
             try
             {
                 string hash = BCrypt.Net.BCrypt.HashPassword(user.Password_hash);
                 user.Password_hash = hash;
-                _context.Users.Add(user);
-                _context.SaveChanges();
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex) {
@@ -35,12 +35,12 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             }   
         }
 
-       public Users? VerifyLoginAndPassword(string email, string senha)
+       public async Task<Users?> VerifyLoginAndPasswordAsync(string email, string senha)
 {
     try
     {
         // Busca por email (correto)
-        var user = _context.Users.FirstOrDefault(x => x.Name == email);
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
 
         // Se não encontrou, retorna null
         if (user == null)

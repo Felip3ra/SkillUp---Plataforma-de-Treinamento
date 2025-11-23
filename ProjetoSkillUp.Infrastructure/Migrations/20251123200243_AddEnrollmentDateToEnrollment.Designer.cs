@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ProjetoSkillUp.Infrastructure.Context;
@@ -11,9 +12,11 @@ using ProjetoSkillUp.Infrastructure.Context;
 namespace ProjetoSkillUp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251123200243_AddEnrollmentDateToEnrollment")]
+    partial class AddEnrollmentDateToEnrollment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,7 +57,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("Certificates", (string)null);
+                    b.ToTable("Certificates");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Course", b =>
@@ -103,7 +106,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Enrollment", b =>
@@ -135,7 +138,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Enrollments", (string)null);
+                    b.ToTable("Enrollments");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Module", b =>
@@ -169,7 +172,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Modules", (string)null);
+                    b.ToTable("Modules");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Module_Progress", b =>
@@ -206,7 +209,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ModuleProgress", (string)null);
+                    b.ToTable("ModuleProgress");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Quiz_Attempts", b =>
@@ -241,7 +244,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("QuizAttempts", (string)null);
+                    b.ToTable("QuizAttempts");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Quiz_Options", b =>
@@ -266,7 +269,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("QuizOptions", (string)null);
+                    b.ToTable("QuizOptions");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Quiz_Questions", b =>
@@ -294,7 +297,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasIndex("QuizId");
 
-                    b.ToTable("QuizQuestions", (string)null);
+                    b.ToTable("QuizQuestions");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Users", b =>
@@ -332,7 +335,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Quiz", b =>
@@ -358,7 +361,7 @@ namespace ProjetoSkillUp.Infrastructure.Migrations
                     b.HasIndex("ModuleId")
                         .IsUnique();
 
-                    b.ToTable("Quizzes", (string)null);
+                    b.ToTable("Quizzes");
                 });
 
             modelBuilder.Entity("ProjetoSkillUp.Domain.Models.Certificates", b =>

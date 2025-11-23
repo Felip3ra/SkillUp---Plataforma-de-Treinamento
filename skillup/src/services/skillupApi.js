@@ -162,10 +162,8 @@ export async function createUser(userForm) {
   try {
     await apiPost('/User/RegistraUsuario', {
       name: userForm.name,
-      email: userForm.email,
-      // se o modelo de Users tiver estes campos:
-      // password: userForm.password || '123456',
-      // department, role numérica etc – ajuste conforme o domínio
+      Email: userForm.email,
+      Password_hash: userForm.password || '123456',
       department: userForm.department,
       role: userForm.role,
     });
@@ -271,23 +269,30 @@ function mapLevelToBackend(level) {
   }
 }
 
+function mapModuleTypeToBackend(type) {
+  switch (type) {
+    case 'VIDEO':
+      return 1; // Video
+    case 'PDF':
+      return 2; // PDF
+    case 'QUIZ':
+      return 3; // Quiz
+    default:
+      return 1; // Default to Video
+  }
+}
+
 // POST /Course/CriaCurso
 export async function createCourse(courseForm, creatorId) {
   const payload = {
-    course: {
-      code: courseForm.code,
-      name: courseForm.name,
-      description: courseForm.description,
-      area: courseForm.area,
-      // enviar como string que o enum espera
-      level: courseForm.level, // "BASIC", "INTERMEDIATE" ou "ADVANCED"
-      estimatedDurationMinutes: Number(courseForm.estimated_duration_minutes) || 0,
-      isMandatory: !!courseForm.is_mandatory,
-      thumbnailUrl: courseForm.thumbnail_url,
-      createdById: Number(creatorId),
-      modules: [],        // se requerido
-      enrollments: []     // se requerido
-    }
+    code: courseForm.code,
+    name: courseForm.name,
+    description: courseForm.description,
+    area: courseForm.area,
+    level: mapLevelToBackend(courseForm.level),
+    estimatedDurationMinutes: Number(courseForm.estimated_duration_minutes) || 0,
+    isMandatory: !!courseForm.is_mandatory,
+    createdById: Number(creatorId),
   };
 
   await apiPost('/Course/CriaCurso', payload);
@@ -344,7 +349,14 @@ export async function getModuleById(moduleId) {
 
 // POST /Module/CreateModule
 export async function createModule(moduleForm) {
-  const resp = await apiPost('/Module/CreateModule', moduleForm);
+  const payload = {
+    courseId: moduleForm.course_id,
+    title: moduleForm.title,
+    type: mapModuleTypeToBackend(moduleForm.type),
+    contentUrl: moduleForm.content_url,
+    orderIndex: moduleForm.order_index,
+  };
+  const resp = await apiPost('/Module/CreateModule', payload);
   // se o backend já devolver o módulo criado com Id, usamos; senão, retornamos um objeto simples
   const m = resp?.Course || resp?.Module || resp?.module || null;
 
@@ -406,6 +418,16 @@ export async function getEnrollmentsByUser(userId) {
     status: e.status ?? e.Status ?? 'NOT_STARTED',
     completed_at: e.completed_at ?? e.CompletedAt ?? null,
   }));
+}
+
+// POST /Enrollment/CreateEnrollment
+export async function createEnrollment(userId, courseId) {
+  const payload = {
+    userId: Number(userId),
+    courseId: Number(courseId),
+  };
+  await apiPost('/Enrollment/CreateEnrollment', payload);
+  return true;
 }
 
 // ainda não temos endpoint pra "concluir curso" no backend.

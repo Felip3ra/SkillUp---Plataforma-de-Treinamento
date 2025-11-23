@@ -15,12 +15,12 @@ namespace ProjetoSkillUp.Presentation.Controllers
         }
         #region Read
         [HttpPost("VerificaLogin")]
-        public IActionResult VerificaLogin([FromQuery] string email, [FromQuery] string senha)
+        public async Task<IActionResult> VerificaLogin([FromQuery] string email, [FromQuery] string senha)
         {
             if (email is null || senha is null) {
                 return BadRequest(new { Message = "Um dos campos está vazio"});
             }
-            var verificado = _userRepository.VerifyLoginAndPassword(email, senha);
+            var verificado = await _userRepository.VerifyLoginAndPasswordAsync(email, senha);
 
             if(verificado != null)
             {
@@ -32,13 +32,13 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
         #region Create
         [HttpPost("RegistraUsuario")]
-        public IActionResult RegistraUsuario([FromBody] Users user)
+        public async Task<IActionResult> RegistraUsuario([FromBody] Users user)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new { Message = "Cadastro inválido" });
             }
-            bool verificado = _userRepository.RegisterUser(user);
+            bool verificado = await _userRepository.RegisterUserAsync(user);
 
             if (verificado == true)
             {

@@ -17,9 +17,9 @@ namespace ProjetoSkillUp.Presentation.Controllers
         }
         #region Read
         [HttpGet("GetEnrollments")]
-        public IActionResult GetEnrollments()
+        public async Task<IActionResult> GetEnrollments()
         {
-            var courses = _repositoryEnrollment.GetAll();
+            var courses = await _repositoryEnrollment.GetAllAsync();
 
             if (courses == null)
             {
@@ -29,9 +29,9 @@ namespace ProjetoSkillUp.Presentation.Controllers
             return Ok(new { Message = "Inscricões encontradas", Course = courses });
         }
         [HttpGet("GetEnrollmentsByUser/{id}")]
-        public IActionResult GetEnrollmentsByUser(int id)
+        public async Task<IActionResult> GetEnrollmentsByUser(int id)
         {
-            var courses = _enrollmentsRepository.GetEnrollmentsByUser(id);
+            var courses = await _enrollmentsRepository.GetEnrollmentsByUserAsync(id);
 
             if (courses == null)
             {
@@ -39,6 +39,20 @@ namespace ProjetoSkillUp.Presentation.Controllers
             }
 
             return Ok(new { Message = "Inscricões encontradas", Course = courses });
+        }
+        #endregion
+        #region Create
+        [HttpPost("CreateEnrollment")]
+        public async Task<IActionResult> CreateEnrollment([FromBody] Enrollment enrollment)
+        {
+            if (enrollment == null)
+            {
+                return BadRequest(new { Message = "Dados de inscrição inválidos." });
+            }
+
+            await _enrollmentsRepository.CreateEnrollmentAsync(enrollment);
+
+            return Ok(new { Message = "Inscrição realizada com sucesso." });
         }
         #endregion
     }

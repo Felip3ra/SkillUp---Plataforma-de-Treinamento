@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualBasic.FileIO;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic.FileIO;
 using ProjetoSkillUp.Domain.DTOs;
 using ProjetoSkillUp.Domain.Interfaces;
 using ProjetoSkillUp.Domain.Models;
@@ -20,12 +21,12 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             _context = context;
         }
 
-        public Quiz CreateQuizWithQuestions(CreateQuizDto dto)
+        public async Task<Quiz> CreateQuizWithQuestionsAsync(CreateQuizDto dto)
         {
             if (dto.ModuleId == 0)
                 throw new Exception("Módulo inválido.");
 
-            using var transaction = _context.Database.BeginTransaction();
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
             var quiz = new Quiz
             {
@@ -34,8 +35,8 @@ namespace ProjetoSkillUp.Infrastructure.Repository
                 Created_at = DateTime.UtcNow
             };
 
-            _context.Quizzes.Add(quiz);
-            _context.SaveChanges();
+            await _context.Quizzes.AddAsync(quiz);
+            await _context.SaveChangesAsync();
 
             int order = 1;
 
@@ -49,8 +50,8 @@ namespace ProjetoSkillUp.Infrastructure.Repository
                     Order_Index = order++
                 };
 
-                _context.QuizQuestions.Add(question);
-                _context.SaveChanges();
+                await _context.QuizQuestions.AddAsync(question);
+                await _context.SaveChangesAsync();
 
                 int optIndex = 0;
 
@@ -63,25 +64,25 @@ namespace ProjetoSkillUp.Infrastructure.Repository
                         Is_Correct = optIndex == q.CorrectIndex
                     };
 
-                    _context.QuizOptions.Add(option);
+                    await _context.QuizOptions.AddAsync(option);
                     optIndex++;
                 }
             }
 
-            _context.SaveChanges();
-            transaction.Commit();
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return quiz;
         }
 
 
-        public IEnumerable<Quiz_Options> GetOptionsByQuestion(int id)
+        public async Task<IEnumerable<Quiz_Options>> GetOptionsByQuestionAsync(int id)
         {
             try
             {
-                return _context.QuizOptions
+                return await _context.QuizOptions
                 .Where(o => o.QuestionId == id)
-                .ToList();
+                .ToListAsync();
             }
             catch(Exception ex)
             {
@@ -89,40 +90,40 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             }
         }
 
-        public Quiz GetQuizByModule(int id)
+        public async Task<Quiz> GetQuizByModuleAsync(int id)
         {
             try
             {
-                return _context.Quizzes.FirstOrDefault(x => x.ModuleId == id);
+                return await _context.Quizzes.FirstOrDefaultAsync(x => x.ModuleId == id);
             }
             catch (Exception ex) {
                 throw ex;
             }
         }
 
-        public IEnumerable<Quiz_Questions> GetQuizQuestions(int id)
+        public async Task<IEnumerable<Quiz_Questions>> GetQuizQuestionsAsync(int id)
         {
             try
             {
-                return _context.QuizQuestions
+                return await _context.QuizQuestions
                 .Where(q => q.QuizId == id)
                 .OrderBy(q => q.Order_Index)
-                .ToList();
+                .ToListAsync();
             }
             catch (Exception ex) {
                 throw ex;
             }
         }
 
-        public QuizWithQuestionsDto? GetQuizWithQuestionsByModule(int moduleId)
+        public async Task<QuizWithQuestionsDto?> GetQuizWithQuestionsByModuleAsync(int moduleId)
         {
-            var quiz = _context.Quizzes
-                .FirstOrDefault(q => q.ModuleId == moduleId);
+            var quiz = await _context.Quizzes
+                .FirstOrDefaultAsync(q => q.ModuleId == moduleId);
 
             if (quiz == null)
                 return null;
 
-            var questions = _context.QuizQuestions
+            var questions = await _context.QuizQuestions
                 .Where(q => q.QuizId == quiz.Id)
                 .OrderBy(q => q.Order_Index)
                 .Select(q => new QuizQuestionWithOptionsDto
@@ -135,7 +136,7 @@ namespace ProjetoSkillUp.Infrastructure.Repository
                         .Where(o => o.QuestionId == q.Id)
                         .ToList()
                 })
-                .ToList();
+                .ToListAsync();
 
             return new QuizWithQuestionsDto
             {

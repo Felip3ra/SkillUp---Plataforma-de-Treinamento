@@ -21,12 +21,12 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
         // 1️⃣ Buscar quiz pelo módulo
         [HttpGet("getQuizByModule/{moduleId}")]
-        public IActionResult GetQuizByModule(int moduleId)
+        public async Task<IActionResult> GetQuizByModule(int moduleId)
         {
             if (moduleId <= 0)
                 return BadRequest("Id do módulo inválido.");
 
-            var quiz = _quizRepository.GetQuizByModule(moduleId);
+            var quiz = await _quizRepository.GetQuizByModuleAsync(moduleId);
             if (quiz == null)
                 return NotFound("Quiz não encontrado para este módulo.");
 
@@ -35,12 +35,12 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
         // 2️⃣ Buscar quiz completo com perguntas e opções
         [HttpGet("getQuizWithQuestions/{moduleId}")]
-        public IActionResult GetQuizWithQuestions(int moduleId)
+        public async Task<IActionResult> GetQuizWithQuestions(int moduleId)
         {
             if (moduleId <= 0)
                 return BadRequest("Id do módulo inválido.");
 
-            var quizDto = _quizRepository.GetQuizWithQuestionsByModule(moduleId);
+            var quizDto = await _quizRepository.GetQuizWithQuestionsByModuleAsync(moduleId);
             if (quizDto == null)
                 return NotFound("Quiz não encontrado para este módulo.");
 
@@ -49,23 +49,23 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
         // 3️⃣ Buscar perguntas de um quiz
         [HttpGet("getQuestions/{quizId}")]
-        public IActionResult GetQuestions(int quizId)
+        public async Task<IActionResult> GetQuestions(int quizId)
         {
             if (quizId <= 0)
                 return BadRequest("Id do quiz inválido.");
 
-            var questions = _quizRepository.GetQuizQuestions(quizId);
+            var questions = await _quizRepository.GetQuizQuestionsAsync(quizId);
             return Ok(questions);
         }
 
         // 4️⃣ Buscar opções de uma pergunta
         [HttpGet("getOptions/{questionId}")]
-        public IActionResult GetOptions(int questionId)
+        public async Task<IActionResult> GetOptions(int questionId)
         {
             if (questionId <= 0)
                 return BadRequest("Id da pergunta inválido.");
 
-            var options = _quizRepository.GetOptionsByQuestion(questionId);
+            var options = await _quizRepository.GetOptionsByQuestionAsync(questionId);
             return Ok(options);
         }
 
@@ -75,14 +75,14 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
         // 5️⃣ Criar quiz com perguntas e opções
         [HttpPost("createQuiz")]
-        public IActionResult CreateQuiz([FromBody] CreateQuizDto dto)
+        public async Task<IActionResult> CreateQuiz([FromBody] CreateQuizDto dto)
         {
             if (dto == null)
                 return BadRequest("Dados inválidos.");
 
             try
             {
-                var quiz = _quizRepository.CreateQuizWithQuestions(dto);
+                var quiz = await _quizRepository.CreateQuizWithQuestionsAsync(dto);
                 return Ok(quiz);
             }
             catch (Exception ex)

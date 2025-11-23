@@ -1,4 +1,5 @@
-﻿using ProjetoSkillUp.Domain.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using ProjetoSkillUp.Domain.Interfaces;
 using ProjetoSkillUp.Domain.Models;
 using ProjetoSkillUp.Infrastructure.Context;
 using System;
@@ -16,11 +17,17 @@ namespace ProjetoSkillUp.Infrastructure.Repository
         {
             _context = context;
         }
-        public IEnumerable<Enrollment> GetEnrollmentsByUser(int id)
+        public async Task CreateEnrollmentAsync(Enrollment enrollment)
+        {
+            await _context.Enrollments.AddAsync(enrollment);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<Enrollment>> GetEnrollmentsByUserAsync(int id)
         {
             try
             {
-                return _context.Enrollments.ToList();
+                return await _context.Enrollments.Where(e => e.UserId == id).ToListAsync();
             }
             catch (Exception ex) {
                 throw ex;

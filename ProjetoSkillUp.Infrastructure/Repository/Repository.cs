@@ -17,12 +17,12 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             _context = context;
         }
 
-        public bool Add(T entity)
+        public async Task<bool> AddAsync(T entity)
         {
             try
             {
-                _context.Set<T>().Add(entity);
-                _context.SaveChanges();
+                await _context.Set<T>().AddAsync(entity);
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch(Exception ex) {
@@ -30,22 +30,22 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             }
         }
 
-        public IEnumerable<T> GetAll()
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
             try
             {
-                return _context.Set<T>().ToList();
+                return await _context.Set<T>().ToListAsync();
             }
             catch (Exception ex) {
                 throw ex;
             } 
         }
 
-        public T GetById(int id)
+        public async Task<T> GetByIdAsync(int id)
         {
             try
             {
-                return _context.Set<T>().Find(id);
+                return await _context.Set<T>().FindAsync(id);
             }
             catch(Exception ex)
             {
@@ -53,20 +53,16 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             }
         }
 
-        public void Update(T entity)
+        public async Task UpdateAsync(T entity)
         {
             try
             {
                 _context.Entry(entity).State = EntityState.Modified;
-                _context.SaveChanges();
-
-
+                await _context.SaveChangesAsync();
             }
             catch (Exception ex) {
                 throw ex;
             }
         }
-
-       
     }
 }

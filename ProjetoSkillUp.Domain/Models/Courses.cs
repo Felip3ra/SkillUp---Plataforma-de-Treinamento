@@ -23,11 +23,11 @@ namespace ProjetoSkillUp.Domain.Models
 
         // FK do criador do curso
         public int CreatedById { get; set; }
-        public Users CreatedBy { get; set; }
+        public Users? CreatedBy { get; set; }
 
         // Relacionamentos
-        public ICollection<Module> Modules { get; set; }
-        public ICollection<Enrollment> Enrollments { get; set; }
+        public ICollection<Module>? Modules { get; set; }
+        public ICollection<Enrollment>? Enrollments { get; set; }
     }
 
 }

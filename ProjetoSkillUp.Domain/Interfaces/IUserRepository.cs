@@ -9,7 +9,7 @@ namespace ProjetoSkillUp.Domain.Interfaces
 {
     public interface IUserRepository
     {
-        Users? VerifyLoginAndPassword(string email, string senha);
-        bool RegisterUser(Users user);
+        Task<Users?> VerifyLoginAndPasswordAsync(string email, string senha);
+        Task<bool> RegisterUserAsync(Users user);
     }
 }

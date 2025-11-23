@@ -18,11 +18,11 @@ namespace ProjetoSkillUp.Domain.Models
 
 
         // FK
-        public Course Course { get; set; }
+        public Course? Course { get; set; }
 
         // Relacionamentos
-        public Quiz Quiz { get; set; } // 1:1
-        public ICollection<Module_Progress> ModuleProgress { get; set; }
+        public Quiz? Quiz { get; set; } // 1:1
+        public ICollection<Module_Progress>? ModuleProgress { get; set; }
     }
 
 }

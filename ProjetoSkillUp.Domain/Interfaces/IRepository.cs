@@ -8,9 +8,9 @@ namespace ProjetoSkillUp.Domain.Interfaces
 {
     public interface IRepository<T>
     {
-        IEnumerable<T> GetAll();
-        T GetById(int id);
-        void Update(T entity);
-        bool Add(T entity);
+        Task<IEnumerable<T>> GetAllAsync();
+        Task<T> GetByIdAsync(int id);
+        Task UpdateAsync(T entity);
+        Task<bool> AddAsync(T entity);
     }
 }

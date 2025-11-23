@@ -16,19 +16,19 @@ namespace ProjetoSkillUp.Infrastructure.Repository
         {
             _context = context;
         }
-        public void CompleteCourse(int userId, int courseId)
+        public async Task CompleteCourseAsync(int userId, int courseId)
         {
             // 1️⃣ Pegar enrollment do usuário
-            var enrollment = _context.Enrollments
+            var enrollment = await _context.Enrollments
                 .Include(e => e.ModuleProgress)
-                .FirstOrDefault(e => e.UserId == userId && e.CourseId == courseId);
+                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
 
             if (enrollment == null)
                 throw new Exception("Usuário não está matriculado neste curso.");
 
             // 2️⃣ Contar total de módulos do curso
-            var totalModules = _context.Modules
-                .Count(m => m.CourseId == courseId);
+            var totalModules = await _context.Modules
+                .CountAsync(m => m.CourseId == courseId);
 
             if (totalModules == 0)
                 throw new Exception("Curso não possui módulos.");
@@ -43,7 +43,7 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             // 4️⃣ Marcar curso como concluído
             enrollment.CompletedAt = DateTime.UtcNow;
             _context.Enrollments.Update(enrollment);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
     }

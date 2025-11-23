@@ -19,14 +19,14 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
         #region Read
         [HttpGet("getModulesByCourse/{id}")]
-        public IActionResult getModulesByCourse(int id)
+        public async Task<IActionResult> getModulesByCourse(int id)
         {
             if (id == null || id == 0)
             {
                 return BadRequest(new { Message = "Id inválido" });
             }
 
-            var courses = _moduleRepository.GetModulesByCourse(id);
+            var courses = await _moduleRepository.GetModulesByCourseAsync(id);
 
             if (courses == null)
             {
@@ -36,10 +36,10 @@ namespace ProjetoSkillUp.Presentation.Controllers
             return Ok(new { Message = "Módulos encontrado", Course = courses });
         }
         [HttpGet("getModules")]
-        public IActionResult getModules()
+        public async Task<IActionResult> getModules()
         {
 
-            var courses = _repositoryModulo.GetAll();
+            var courses = await _repositoryModulo.GetAllAsync();
 
             if (courses == null)
             {
@@ -53,13 +53,13 @@ namespace ProjetoSkillUp.Presentation.Controllers
 
         #region Create
         [HttpPost("CreateModule")]
-        public IActionResult CreateModule([FromBody] Module course)
+        public async Task<IActionResult> CreateModule([FromBody] Module course)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(new { Message = "Cadastro inválido" });
             }
-            bool verificado = _repositoryModulo.Add(course);
+            bool verificado = await _repositoryModulo.AddAsync(course);
 
             if (verificado == true)
             {
@@ -72,14 +72,14 @@ namespace ProjetoSkillUp.Presentation.Controllers
         #region Update
         // ✅ Completar módulo
         [HttpPost("completeModule")]
-        public IActionResult CompleteModule([FromBody] CompleteModuleDto dto)
+        public async Task<IActionResult> CompleteModule([FromBody] CompleteModuleDto dto)
         {
             if (dto == null || dto.ModuleId <= 0 || dto.UserId <= 0)
                 return BadRequest("Dados inválidos.");
 
             try
             {
-                _moduleRepository.CompleteModule(dto);
+                await _moduleRepository.CompleteModuleAsync(dto);
                 return Ok(new { success = true });
             }
             catch (Exception ex)

@@ -6,10 +6,10 @@ namespace ProjetoSkillUp.Domain.Interfaces
 {
     public interface IQuizRepository
     {
-        Quiz GetQuizByModule(int moduleId);
-        IEnumerable<Quiz_Questions> GetQuizQuestions(int quizId);
-        IEnumerable<Quiz_Options> GetOptionsByQuestion(int questionId);
-        QuizWithQuestionsDto GetQuizWithQuestionsByModule(int moduleId);
-        Quiz CreateQuizWithQuestions(CreateQuizDto dto);
+        Task<Quiz> GetQuizByModuleAsync(int moduleId);
+        Task<IEnumerable<Quiz_Questions>> GetQuizQuestionsAsync(int quizId);
+        Task<IEnumerable<Quiz_Options>> GetOptionsByQuestionAsync(int questionId);
+        Task<QuizWithQuestionsDto> GetQuizWithQuestionsByModuleAsync(int moduleId);
+        Task<Quiz> CreateQuizWithQuestionsAsync(CreateQuizDto dto);
     }
 }

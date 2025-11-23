@@ -9,6 +9,7 @@ namespace ProjetoSkillUp.Domain.Interfaces
 {
     public interface IEnrollmentsRepository
     {
-        IEnumerable<Enrollment> GetEnrollmentsByUser(int id);
+        Task<IEnumerable<Enrollment>> GetEnrollmentsByUserAsync(int id);
+        Task CreateEnrollmentAsync(Enrollment enrollment);
     }
 }

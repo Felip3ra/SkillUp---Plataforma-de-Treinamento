@@ -10,7 +10,7 @@ namespace ProjetoSkillUp.Domain.Interfaces
 {
     public interface IModuleRepository
     {
-        IEnumerable<Module> GetModulesByCourse(int courseId);
-        void CompleteModule(CompleteModuleDto dto);
+        Task<IEnumerable<Module>> GetModulesByCourseAsync(int courseId);
+        Task CompleteModuleAsync(CompleteModuleDto dto);
     }
 }

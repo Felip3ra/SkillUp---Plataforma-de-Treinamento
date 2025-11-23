@@ -21,23 +21,24 @@ namespace ProjetoSkillUp.Infrastructure.Repository
             _mapper = mapper;
         }
 
-        public void CompleteModule(CompleteModuleDto dto)
+        public async Task CompleteModuleAsync(CompleteModuleDto dto)
         {
-            var module = _context.Modules
-                .FirstOrDefault(m => m.Id == dto.ModuleId);
+            var module = await _context.Modules
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == dto.ModuleId);
 
             if (module == null)
                 throw new Exception("Módulo não encontrado.");
 
-            var enrollment = _context.Enrollments
+            var enrollment = await _context.Enrollments
                 .Include(e => e.ModuleProgress)
-                .FirstOrDefault(e => e.UserId == dto.UserId && e.CourseId == module.CourseId);
+                .FirstOrDefaultAsync(e => e.UserId == dto.UserId && e.CourseId == module.CourseId);
 
             if (enrollment == null)
                 throw new Exception("Usuário não está matriculado neste curso.");
 
-            var progress = _context.ModuleProgress
-                .FirstOrDefault(mp => mp.ModuleId == dto.ModuleId && mp.EnrollmentId == enrollment.Id);
+            var progress = await _context.ModuleProgress
+                .FirstOrDefaultAsync(mp => mp.ModuleId == dto.ModuleId && mp.EnrollmentId == enrollment.Id);
 
             if (progress == null)
             {
@@ -48,7 +49,7 @@ namespace ProjetoSkillUp.Infrastructure.Repository
                     Status = Status.COMPLETED,
                     Completed_At = DateTime.UtcNow
                 };
-                _context.ModuleProgress.Add(progress);
+                await _context.ModuleProgress.AddAsync(progress);
             }
             else
             {
@@ -57,25 +58,29 @@ namespace ProjetoSkillUp.Infrastructure.Repository
                 _context.ModuleProgress.Update(progress);
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            var totalModules = _context.Modules.Count(m => m.CourseId == module.CourseId);
-            var completedModules = enrollment.ModuleProgress.Count(mp => mp.Status == Status.COMPLETED);
-            if (!enrollment.ModuleProgress.Contains(progress))
-                completedModules++;
+            // Lógica de conclusão do curso
+            var totalModulesInCourse = await _context.Modules
+                .CountAsync(m => m.CourseId == module.CourseId);
 
-            if (completedModules >= totalModules)
+            var completedModulesCount = await _context.ModuleProgress
+                .CountAsync(mp => mp.EnrollmentId == enrollment.Id && mp.Status == Status.COMPLETED);
+
+            if (completedModulesCount >= totalModulesInCourse)
             {
                 enrollment.CompletedAt = DateTime.UtcNow;
+                // Se você tiver um campo de Status na Inscrição
+                // enrollment.Status = Status.COMPLETED; 
                 _context.Enrollments.Update(enrollment);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 
         // Agora o método retorna DTOs usando AutoMapper
-        public IEnumerable<Module> GetModulesByCourse(int courseId)
+        public async Task<IEnumerable<Module>> GetModulesByCourseAsync(int courseId)
         {
-            var modules = _context.Modules.Where(m => m.CourseId == courseId).ToList();
+            var modules = await _context.Modules.Where(m => m.CourseId == courseId).ToListAsync();
             return _mapper.Map<IEnumerable<Module>>(modules);
         }
     }
